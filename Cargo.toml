@@ -4,14 +4,17 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rock_dom = { version = "0.1.0", path = "crates/rock_dom" }
 
 [dev-dependencies]
 
 [workspace]
-members = ["crates/rock_dom"]
+members = ["crates/rock_desktop", "crates/rock_dom"]
+default-members = ["crates/rock_desktop"]
 
 [workspace.dependencies]
+# Rock
+rock_dom = { version = "0.1.0", path = "crates/rock_dom" }
+
 insta = { version = "1.49.0", features = ["yaml"] }
 thiserror = "2.0.21"
 tracing = "0.1"

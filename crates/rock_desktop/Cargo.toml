@@ -1,0 +1,12 @@
+[package]
+name = "rock_desktop"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+softbuffer = "0.4.8"
+tiny-skia = "0.12.0"
+winit = "0.30.13"
+
+[lints]
+workspace = true

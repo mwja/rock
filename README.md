@@ -6,7 +6,13 @@ It is not meant to be production ready and will likely not be able to render and
 long long while if at all, but it is supposed to be a long term project to show my own skills.
 
 
-## Snapshots
+## Snapshots & testing
+Be sure to use `--workspace`:
+
+```sh
+cargo test --workspace
+```
+
 A handful of tests are `insta` powered snapshots, you will need `cargo-insta`:
 
 ```sh
