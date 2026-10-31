@@ -1,0 +1,25 @@
+{
+  "languages": {
+    "Rust": {
+      "format_on_save": "on",
+      "formatter": {
+        "language_server": {
+          "name": "rust-analyzer"
+        }
+      }
+    }
+  },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "command": "clippy",
+          "allTargets": true
+        },
+        "rust": {
+          "analyzerTargetDir": true,
+        },
+      }
+    }
+  }
+}

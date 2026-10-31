@@ -1,0 +1,13 @@
+---
+source: crates/rock_dom/tests/foster_table.rs
+expression: dump(&dom)
+---
+| <html>
+|   <head>
+|   <body>
+|     "oops"
+|     <table>
+|       <tbody>
+|         <tr>
+|           <td>
+|             "x"
