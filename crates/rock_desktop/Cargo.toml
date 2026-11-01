@@ -4,9 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = { version = "4.6.7", features = ["derive"] }
+rock_dom.workspace = true
+rock_layout.workspace = true
+rock_render.workspace = true
 softbuffer = "0.4.8"
 tiny-skia = "0.12.0"
 winit = "0.30.13"
+tracing-subscriber.workspace = true
+clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
+tracing.workspace = true
 
 [lints]
 workspace = true

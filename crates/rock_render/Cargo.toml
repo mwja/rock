@@ -1,0 +1,11 @@
+[package]
+name = "rock_render"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tiny-skia = "0.12.0"
+tracing.workspace = true
+
+[lints]
+workspace = true

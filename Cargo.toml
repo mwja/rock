@@ -8,12 +8,14 @@ edition = "2024"
 [dev-dependencies]
 
 [workspace]
-members = ["crates/rock_desktop", "crates/rock_dom"]
+members = ["crates/rock_desktop", "crates/rock_dom", "crates/rock_layout", "crates/rock_render"]
 default-members = ["crates/rock_desktop"]
 
 [workspace.dependencies]
 # Rock
 rock_dom = { version = "0.1.0", path = "crates/rock_dom" }
+rock_render = { version = "0.1.0", path = "crates/rock_render" }
+rock_layout = { version = "0.1.0", path = "crates/rock_layout" }
 
 insta = { version = "1.49.0", features = ["yaml"] }
 thiserror = "2.0.21"
