@@ -46,7 +46,7 @@ impl Color {
         r: 0,
         g: 0,
         b: 0,
-        a: 0,
+        a: 255,
     };
 }
 
@@ -84,5 +84,45 @@ impl Edges {
             bottom: val,
             left: 0.0,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rect_new_sets_origin_and_size() {
+        let r = Rect::new(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(r.origin, Point { x: 1.0, y: 2.0 });
+        assert_eq!(r.size, Size { w: 3.0, h: 4.0 });
+    }
+
+    #[test]
+    fn edges_axis_helpers() {
+        assert_eq!(
+            Edges::x(2.0),
+            Edges {
+                top: 0.0,
+                right: 2.0,
+                bottom: 0.0,
+                left: 2.0
+            }
+        );
+        assert_eq!(
+            Edges::y(2.0),
+            Edges {
+                top: 2.0,
+                right: 0.0,
+                bottom: 2.0,
+                left: 0.0
+            }
+        );
+    }
+
+    #[test]
+    fn named_colors_are_opaque() {
+        assert_eq!(Color::WHITE.a, 255);
+        assert_eq!(Color::BLACK.a, 255);
     }
 }

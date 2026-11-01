@@ -40,3 +40,25 @@ impl TextSystem {
         buf
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEXT: &str = "the quick brown fox jumps over the lazy dog";
+
+    fn lines(ts: &mut TextSystem, max_width: f32) -> usize {
+        ts.shape(TEXT, 12.0, 16.0, max_width).layout_runs().count()
+    }
+
+    #[test]
+    fn short_text_fits_on_one_line() {
+        assert_eq!(lines(&mut TextSystem::new(), 10_000.0), 1);
+    }
+
+    #[test]
+    fn narrow_width_wraps_onto_more_lines() {
+        let mut ts = TextSystem::new();
+        assert!(lines(&mut ts, 40.0) > lines(&mut ts, 10_000.0));
+    }
+}

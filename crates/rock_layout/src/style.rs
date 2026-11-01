@@ -58,3 +58,50 @@ pub fn style_for(dom: &Dom, id: NodeId) -> Style {
 
     s
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Style of the first element called `name` in `html`.
+    fn style_of(html: &str, name: &str) -> Style {
+        let dom = create_dom(html).unwrap();
+        let id = dom
+            .ids()
+            .iter()
+            .copied()
+            .find(|&id| dom.try_element(id).is_some_and(|e| &*e.name.local == name))
+            .unwrap();
+        style_for(&dom, id)
+    }
+
+    #[test]
+    fn metadata_elements_are_not_displayed() {
+        assert_eq!(style_of("<title>t</title>", "head").display, Display::None);
+        assert_eq!(style_of("<title>t</title>", "title").display, Display::None);
+    }
+
+    #[test]
+    fn body_has_default_margin() {
+        assert_eq!(style_of("", "body").margin, Edges::all(8.0));
+    }
+
+    #[test]
+    fn paragraph_has_vertical_margin_only() {
+        let s = style_of("<p>x</p>", "p");
+        assert_eq!(s.margin, Edges::y(16.0));
+        assert_eq!(s.display, Display::Block);
+    }
+
+    #[test]
+    fn non_element_is_not_displayed() {
+        let dom = create_dom("<p>x</p>").unwrap();
+        let text = dom
+            .ids()
+            .iter()
+            .copied()
+            .find(|&id| dom.node(id).and_then(NodeData::as_text).is_some())
+            .unwrap();
+        assert_eq!(style_for(&dom, text).display, Display::None);
+    }
+}

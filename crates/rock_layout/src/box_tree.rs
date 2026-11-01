@@ -76,3 +76,57 @@ fn text_style(parent: &Style) -> Style {
         ..Style::default()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rock_render::geo::Edges;
+
+    fn boxes(html: &str) -> BoxNode {
+        build_box_tree(&create_dom(html).unwrap()).unwrap()
+    }
+
+    /// All text in the box tree, depth first.
+    fn texts(b: &BoxNode) -> Vec<String> {
+        let mut out = Vec::new();
+        if let BoxKind::Text(t) = &b.kind {
+            out.push(t.clone());
+        }
+        for c in &b.children {
+            out.extend(texts(c));
+        }
+        out
+    }
+
+    #[test]
+    fn root_box_is_html_and_head_is_skipped() {
+        // html's only child box should be body, head is display: none
+        let root = boxes("<title>t</title><p>x</p>");
+        assert!(matches!(root.kind, BoxKind::Block));
+        assert_eq!(root.children.len(), 1);
+        assert_eq!(texts(&root), ["x"]);
+    }
+
+    #[test]
+    fn whitespace_only_text_makes_no_box() {
+        let root = boxes("<div>\n   <p>a</p>\n   </div>");
+        let body = &root.children[0];
+        let div = &body.children[0];
+        assert_eq!(div.children.len(), 1); // just the <p>
+    }
+
+    #[test]
+    fn text_whitespace_is_collapsed() {
+        assert_eq!(texts(&boxes("<p>  a \n\t b  </p>")), ["a b"]);
+    }
+
+    #[test]
+    fn text_inherits_font_from_parent() {
+        let root = boxes("<p>x</p>");
+        let p = &root.children[0].children[0];
+        let text = &p.children[0];
+        assert_eq!(text.style.font_size, p.style.font_size);
+        assert_eq!(text.style.color, p.style.color);
+        assert_eq!(text.style.margin, Edges::default()); // box props don't inherit
+    }
+}

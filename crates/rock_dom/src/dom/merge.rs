@@ -40,3 +40,42 @@ impl Dom {
         text_node
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::dom::Dom;
+
+    #[test]
+    fn append_text_merges_into_previous_text() {
+        let mut dom = Dom::new();
+        let root = dom.root();
+        let first = dom.append_text(root, "Hello, ".into());
+        let second = dom.append_text(root, "World!".into());
+        assert_eq!(first, second);
+        assert_eq!(dom.text(first), "Hello, World!");
+        assert_eq!(dom.children(root).count(), 1);
+    }
+
+    #[test]
+    fn append_text_after_non_text_creates_new_node() {
+        let mut dom = Dom::new();
+        let root = dom.root();
+        let comment = dom.create_comment("c".into());
+        dom.append_child(root, comment);
+        let text = dom.append_text(root, "t".into());
+        assert_ne!(text, comment);
+        assert_eq!(dom.children(root).collect::<Vec<_>>(), [comment, text]);
+    }
+
+    #[test]
+    fn append_text_before_merges_left_not_right() {
+        let mut dom = Dom::new();
+        let root = dom.root();
+        let left = dom.append_text(root, "X".into());
+        let right = dom.create_comment("Y".into());
+        dom.append_child(root, right);
+        let merged = dom.append_text_before(right, "Z".into());
+        assert_eq!(merged, left);
+        assert_eq!(dom.text(left), "XZ");
+    }
+}

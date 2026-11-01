@@ -164,3 +164,54 @@ impl Dom {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use html5ever::ns;
+
+    fn qual(local: &str) -> QualName {
+        QualName::new(None, ns!(), LocalName::from(local))
+    }
+
+    fn div() -> ElementData {
+        ElementData {
+            name: qual("div"),
+            attrs: Vec::new(),
+            template_contents: None,
+            id: None,
+            classes: Default::default(),
+        }
+    }
+
+    #[test]
+    fn set_attr_refreshes_id_and_classes() {
+        let mut el = div();
+        el.set_attr(qual("id"), "main".into());
+        el.set_attr(qual("class"), "  a   b ".into());
+        assert_eq!(el.id.as_deref(), Some("main"));
+        assert_eq!(
+            el.classes.as_slice(),
+            [LocalName::from("a"), LocalName::from("b")]
+        );
+    }
+
+    #[test]
+    fn add_attr_if_missing_does_not_overwrite() {
+        let mut el = div();
+        el.set_attr(qual("id"), "first".into());
+        el.add_attr_if_missing(qual("id"), "second".into());
+        el.add_attr_if_missing(qual("title"), "t".into());
+        assert_eq!(el.attr(&local_name!("id")), Some("first"));
+        assert_eq!(el.attr(&local_name!("title")), Some("t"));
+    }
+
+    #[test]
+    fn try_element_is_none_for_text() {
+        let mut dom = Dom::new();
+        let text = dom.create_text("hi".into());
+        let el = dom.create_element(div());
+        assert!(dom.try_element(text).is_none());
+        assert!(dom.try_element(el).is_some());
+    }
+}

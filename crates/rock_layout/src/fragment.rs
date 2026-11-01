@@ -109,3 +109,96 @@ fn layout_text(node: &BoxNode, text: &str, c: Constraints, ts: &mut TextSystem) 
         children: Vec::new(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::style::Style;
+
+    fn block(style: Style, children: Vec<BoxNode>) -> BoxNode {
+        BoxNode {
+            node: None,
+            kind: BoxKind::Block,
+            style,
+            children,
+        }
+    }
+
+    fn sized(h: f32, margin: Edges) -> BoxNode {
+        block(
+            Style {
+                height: Some(h),
+                margin,
+                ..Style::default()
+            },
+            Vec::new(),
+        )
+    }
+
+    fn run(node: &BoxNode, w: f32) -> Fragment {
+        layout(
+            node,
+            Constraints { available_width: w },
+            &mut TextSystem::new(),
+        )
+    }
+
+    #[test]
+    fn block_fills_width_minus_margin() {
+        let node = block(
+            Style {
+                margin: Edges::x(10.0),
+                padding: Edges::all(5.0),
+                border: Edges::all(1.0),
+                ..Style::default()
+            },
+            Vec::new(),
+        );
+        let f = run(&node, 100.0);
+        // border box = available - margins; content = that - padding - border
+        assert_eq!(f.size.w, 80.0);
+        assert_eq!(f.content_offset, Point { x: 6.0, y: 6.0 });
+    }
+
+    #[test]
+    fn children_stack_vertically_with_margins() {
+        let node = block(
+            Style::default(),
+            vec![sized(10.0, Edges::y(5.0)), sized(20.0, Edges::default())],
+        );
+        let f = run(&node, 100.0);
+        assert_eq!(f.children[0].offset, Point { x: 0.0, y: 5.0 });
+        assert_eq!(f.children[1].offset, Point { x: 0.0, y: 20.0 });
+        assert_eq!(f.size.h, 40.0);
+    }
+
+    #[test]
+    fn explicit_height_overrides_content() {
+        let node = block(
+            Style {
+                height: Some(3.0),
+                ..Style::default()
+            },
+            vec![sized(50.0, Edges::default())],
+        );
+        assert_eq!(run(&node, 100.0).size.h, 3.0);
+    }
+
+    #[test]
+    fn text_gets_taller_when_narrower() {
+        let node = BoxNode {
+            node: None,
+            kind: BoxKind::Text("the quick brown fox jumps over the lazy dog".into()),
+            style: Style {
+                font_size: 12.0,
+                line_height: 16.0,
+                ..Style::default()
+            },
+            children: Vec::new(),
+        };
+        let wide = run(&node, 1000.0);
+        let narrow = run(&node, 40.0);
+        assert_eq!(wide.size.h, 16.0);
+        assert!(narrow.size.h > wide.size.h);
+    }
+}

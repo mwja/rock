@@ -172,3 +172,55 @@ impl Dom {
         self.data.remove(id);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A root with three text children `a`, `b`, `c`, in that order.
+    fn abc() -> (Dom, NodeId, [NodeId; 3]) {
+        let mut dom = Dom::new();
+        let root = dom.root();
+        let kids = ["a", "b", "c"].map(|t| dom.create_text(t.into()));
+        for k in kids {
+            dom.append_child(root, k);
+        }
+        (dom, root, kids)
+    }
+
+    #[test]
+    fn append_child_keeps_document_order() {
+        let (dom, root, [a, b, c]) = abc();
+        assert_eq!(dom.children(root).collect::<Vec<_>>(), [a, b, c]);
+        assert_eq!(dom.parent(b), Some(root));
+        assert_eq!(dom.next_sibling(a), Some(b));
+    }
+
+    #[test]
+    fn append_before_first_child_becomes_first() {
+        let (mut dom, root, [a, b, c]) = abc();
+        let z = dom.create_text("z".into());
+        dom.append_before(a, z);
+        assert_eq!(dom.children(root).collect::<Vec<_>>(), [z, a, b, c]);
+        assert_eq!(dom.links(root).unwrap().first_child, Some(z));
+    }
+
+    #[test]
+    fn detach_relinks_siblings() {
+        let (mut dom, root, [a, b, c]) = abc();
+        dom.detach(b);
+        assert_eq!(dom.children(root).collect::<Vec<_>>(), [a, c]);
+        assert_eq!(dom.parent(b), None);
+        assert_eq!(dom.links(c).unwrap().prev_sibling, Some(a));
+    }
+
+    #[test]
+    fn append_child_moves_node_from_old_parent() {
+        let (mut dom, root, [a, b, c]) = abc();
+        // move `c` under `a`
+        dom.append_child(a, c);
+        assert_eq!(dom.children(root).collect::<Vec<_>>(), [a, b]);
+        assert_eq!(dom.children(a).collect::<Vec<_>>(), [c]);
+        assert_eq!(dom.links(root).unwrap().last_child, Some(b));
+    }
+}

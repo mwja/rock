@@ -54,3 +54,50 @@ fn check_invariants(dom: &Dom) {
         // no two adjacent Text children (the spec requires merging)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dom::NodeId;
+
+    /// Find the first element called `name` (depth first).
+    fn find(dom: &Dom, from: NodeId, name: &str) -> Option<NodeId> {
+        if dom
+            .try_element(from)
+            .is_some_and(|e| &*e.name.local == name)
+        {
+            return Some(from);
+        }
+        dom.children(from).find_map(|c| find(dom, c, name))
+    }
+
+    #[test]
+    fn creates_implied_html_head_body() {
+        let dom = create_dom("hello").unwrap();
+        let html = find(&dom, dom.root(), "html").unwrap();
+        let names: Vec<_> = dom
+            .children(html)
+            .map(|c| dom.element(c).name.local.to_string())
+            .collect();
+        assert_eq!(names, ["head", "body"]);
+    }
+
+    #[test]
+    fn adjacent_text_becomes_one_node() {
+        // the tokenizer emits "a", "&", "b" separately; they should merge
+        let dom = create_dom("<p>a&amp;b</p>").unwrap();
+        let p = find(&dom, dom.root(), "p").unwrap();
+        let kids: Vec<_> = dom.children(p).collect();
+        assert_eq!(kids.len(), 1);
+        assert_eq!(dom.text(kids[0]), "a&b");
+    }
+
+    #[test]
+    fn template_children_go_into_its_fragment() {
+        let dom = create_dom("<template><p>x</p></template>").unwrap();
+        let template = find(&dom, dom.root(), "template").unwrap();
+        assert_eq!(dom.children(template).count(), 0);
+        let frag = dom.element(template).template_contents.unwrap();
+        assert!(find(&dom, frag, "p").is_some());
+    }
+}
