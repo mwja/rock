@@ -12,6 +12,9 @@ pub struct Style {
     pub border: Edges,
     pub border_color: Color,
     pub background: Option<Color>,
+    pub font_size: f32,
+    pub line_height: f32,
+    pub color: Color,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -33,6 +36,9 @@ pub fn style_for(dom: &Dom, id: NodeId) -> Style {
     let tag = &*el.name.local;
     let mut s = Style {
         display: Display::Block,
+        font_size: 12.0,
+        line_height: 16.0,
+        color: Color::BLACK,
         ..Style::default()
     };
 
@@ -50,25 +56,5 @@ pub fn style_for(dom: &Dom, id: NodeId) -> Style {
         _ => {}
     }
 
-    // a debugging aid, not CSS: give some tags a background so you can see them
-    match tag {
-        "div" => {
-            s.background = Some(Color {
-                r: 230,
-                g: 230,
-                b: 250,
-                a: 255,
-            })
-        }
-        "p" => {
-            s.background = Some(Color {
-                r: 250,
-                g: 240,
-                b: 220,
-                a: 255,
-            })
-        }
-        _ => {}
-    }
     s
 }

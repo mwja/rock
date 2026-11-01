@@ -1,5 +1,6 @@
 mod display;
 pub mod geo;
+pub mod text;
 
 pub mod prelude {
     pub use super::display::*;
@@ -7,13 +8,24 @@ pub mod prelude {
     pub use super::render;
 }
 
-use crate::prelude::{Color, DisplayItem, DisplayList, Rect};
+use crate::{
+    geo::Point,
+    prelude::{Color, DisplayItem, DisplayList, Rect},
+    text::TextSystem,
+};
+use cosmic_text::Buffer;
 use tiny_skia::{Paint, Pixmap, Transform};
 use tracing::{trace, warn};
 
 /// Rasterize a display list into a `width` x `height` device-pixel pixmap.
 /// `scale` is the device-pixel ratio (window.scale_factor()).
-pub fn render(list: &DisplayList, width: u32, height: u32, scale: f32) -> Pixmap {
+pub fn render(
+    list: &DisplayList,
+    width: u32,
+    height: u32,
+    scale: f32,
+    ts: &mut TextSystem,
+) -> Pixmap {
     trace!("Rendering list of size {} at scale {scale}", list.len());
     trace!("Pixmap in device pixels: {width},{height}");
 
@@ -65,6 +77,26 @@ pub fn render(list: &DisplayList, width: u32, height: u32, scale: f32) -> Pixmap
                     transform,
                 );
             }
+            DisplayItem::Text {
+                origin,
+                text,
+                font_size,
+                line_height,
+                max_width,
+                color,
+            } => {
+                let mut buf = ts.shape(
+                    text,
+                    font_size * scale,
+                    line_height * scale,
+                    max_width * scale,
+                );
+                let device_origin = Point {
+                    x: origin.x * scale,
+                    y: origin.y * scale,
+                };
+                draw_text(&mut pixmap, ts, &mut buf, device_origin, *color);
+            }
         }
     }
     pixmap
@@ -80,4 +112,27 @@ fn fill(pixmap: &mut Pixmap, rect: Rect, color: Color, transform: Transform) {
     let mut paint = Paint::default();
     paint.set_color_rgba8(color.r, color.g, color.b, color.a);
     pixmap.fill_rect(r, &paint, transform, None);
+}
+
+pub fn draw_text(
+    pixmap: &mut Pixmap,
+    ts: &mut TextSystem,
+    buf: &mut Buffer,
+    origin: Point,
+    color: Color,
+) {
+    let c = cosmic_text::Color::rgba(color.r, color.g, color.b, color.a);
+    buf.draw(&mut ts.fonts, &mut ts.cache, c, |x, y, w, h, px| {
+        let Some(r) = tiny_skia::Rect::from_xywh(
+            origin.x + x as f32,
+            origin.y + y as f32,
+            w as f32,
+            h as f32,
+        ) else {
+            return;
+        };
+        let mut paint = tiny_skia::Paint::default();
+        paint.set_color_rgba8(px.r(), px.g(), px.b(), px.a());
+        pixmap.fill_rect(r, &paint, tiny_skia::Transform::identity(), None);
+    });
 }

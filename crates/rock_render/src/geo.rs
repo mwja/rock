@@ -35,6 +35,21 @@ pub struct Color {
     pub a: u8,
 }
 
+impl Color {
+    pub const WHITE: Color = Color {
+        r: 255,
+        g: 255,
+        b: 255,
+        a: 255,
+    };
+    pub const BLACK: Color = Color {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 0,
+    };
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Edges {
     pub top: f32,

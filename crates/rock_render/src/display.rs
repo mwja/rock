@@ -11,6 +11,15 @@ pub enum DisplayItem {
         widths: Edges,
         colors: [Color; 4], // top, right, bottom, left
     },
+
+    Text {
+        origin: Point,
+        text: String,
+        font_size: f32,
+        line_height: f32,
+        max_width: f32,
+        color: Color,
+    },
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

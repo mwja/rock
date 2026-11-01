@@ -2,7 +2,7 @@ use clap::Parser;
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use rock_dom::prelude::*;
 use rock_layout::prelude::*;
-use rock_render::prelude::*;
+use rock_render::{prelude::*, text::TextSystem};
 use std::{error::Error, fs::File, io::Read, path::PathBuf};
 use tracing::trace;
 use tracing_subscriber::FmtSubscriber;
@@ -24,6 +24,7 @@ struct Args {
 
 struct UnoptimizedRenderer {
     dom: Dom,
+    ts: TextSystem,
 }
 
 impl Renderer for UnoptimizedRenderer {
@@ -38,9 +39,10 @@ impl Renderer for UnoptimizedRenderer {
             Constraints {
                 available_width: viewport.w,
             },
+            &mut self.ts,
         );
         let list = build_display_list(&root, viewport);
-        render(&list, width, height, scale)
+        render(&list, width, height, scale, &mut self.ts)
     }
 }
 
@@ -56,7 +58,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // just weird makeshift code for now
     let dom = create_dom(&buf)?;
 
-    UnoptimizedRenderer { dom }.run_simple();
+    UnoptimizedRenderer {
+        dom,
+        ts: Default::default(),
+    }
+    .run_simple();
 
     Ok(())
 }

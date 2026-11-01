@@ -35,6 +35,17 @@ fn paint(f: &Fragment, parent_content_origin: Point, list: &mut DisplayList) {
         });
     }
 
+    if let Some(t) = &f.text {
+        list.items.push(DisplayItem::Text {
+            origin,
+            text: t.text.clone(),
+            font_size: t.font_size,
+            line_height: t.line_height,
+            max_width: f.size.w,
+            color: t.color,
+        });
+    }
+
     let content_origin = Point {
         x: origin.x + f.content_offset.x,
         y: origin.y + f.content_offset.y,
